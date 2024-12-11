@@ -1,0 +1,107 @@
+import re
+
+# Função para identificar traços de personalidade com base nas mensagens
+def mapear_personalidade(mensagens):
+    # Inicializa um dicionário para contar os traços
+    traços = {
+        "emocional": 0,
+        "racional": 0,
+        "positivo": 0,
+        "negativo": 0,
+        "confiante": 0,
+        "neutro": 0
+    }
+
+    # Palavras-chave associadas a traços de personalidade
+    palavras_emocionais = ["triste", "amo", "chateada", "saudades", "🥺", "😡"]
+    palavras_racionais = ["planejar", "resolver", "organizar", "estratégia", "pensar"]
+    palavras_positivas = ["feliz", "ótimo", "bom", "gostei", "😊"]
+    palavras_negativas = ["ruim", "difícil", "problema", "triste", "😔"]
+    palavras_confiança = ["conseguir", "determinação", "certeza", "confiança"]
+
+    for msg in mensagens:
+        for palavra in palavras_emocionais:
+            if palavra in msg.lower():
+                traços["emocional"] += 1
+                break
+        for palavra in palavras_racionais:
+            if palavra in msg.lower():
+                traços["racional"] += 1
+                break
+        for palavra in palavras_positivas:
+            if palavra in msg.lower():
+                traços["positivo"] += 1
+                break
+        for palavra in palavras_negativas:
+            if palavra in msg.lower():
+                traços["negativo"] += 1
+                break
+        for palavra in palavras_confiança:
+            if palavra in msg.lower():
+                traços["confiante"] += 1
+                break
+        # Se nenhuma palavra-chave se aplicar, conta como neutro
+        else:
+            traços["neutro"] += 1
+
+    return traços
+
+# Função para gerar um prompt de personalidade
+def gerar_prompt_personalidade(traços):
+    prompt = "Esta é uma definição da personalidade baseada nas interações:\n\n"
+
+    if traços["emocional"] > 5:
+        prompt += "- Esta pessoa tende a ser bastante **emocional**, expressando seus sentimentos abertamente. Ela valoriza relacionamentos pessoais e frequentemente busca apoio emocional nas interações.\n"
+
+    if traços["racional"] > 5:
+        prompt += "- Embora emocional, ela também demonstra um lado **racional**, utilizando planejamento e resolução de problemas como forma de lidar com situações complexas.\n"
+
+    if traços["positivo"] > 5:
+        prompt += "- Seu tom geral é **positivo**, com uma tendência a manter otimismo, mesmo em situações difíceis.\n"
+
+    if traços["negativo"] > 5:
+        prompt += "- Ela demonstra momentos de **negatividade** e frustração, expressando insatisfação com certa frequência.\n"
+
+    if traços["confiante"] > 5:
+        prompt += "- A pessoa é **confiante**, acredita em sua capacidade de superar desafios e se dedica a alcançar seus objetivos.\n"
+
+    if traços["neutro"] > 5:
+        prompt += "- Frequentemente, a comunicação é **neutra**, demonstrando uma abordagem equilibrada em diferentes situações.\n"
+
+    prompt += "\n**Estilo de Comunicação:**\n- A pessoa usa um tom casual e leve, muitas vezes incorporando emojis e expressões para transmitir suas emoções. Ela se preocupa com as relações e valoriza o diálogo aberto.\n"
+
+    return prompt
+
+# Função principal para processar mensagens e gerar a definição da personalidade
+def processar_mensagens(arquivo, filtro):
+    try:
+        with open(arquivo, 'r', encoding='utf-8') as f:
+            linhas = f.readlines()
+
+        mensagens = []
+        for linha in linhas:
+            if filtro.lower() in linha.lower():
+                # Remove data/hora e filtra
+                linha_sem_data_hora = re.sub(r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2} - ", '', linha).strip()
+                mensagens.append(linha_sem_data_hora)
+
+        if not mensagens:
+            return "Nenhuma mensagem encontrada para o filtro especificado."
+
+        traços = mapear_personalidade(mensagens)
+        prompt_personalidade = gerar_prompt_personalidade(traços)
+
+        return prompt_personalidade
+
+    except FileNotFoundError:
+        return "Arquivo não encontrado. Verifique o caminho fornecido."
+    except Exception as e:
+        return f"Ocorreu um erro: {e}"
+
+# Entrada de dados do usuário
+arquivo_txt = input("Digite o caminho do arquivo de texto com as mensagens (ex.: /content/Conversa.txt): ")
+filtro_de_busca = input("Digite o nome ou termo para filtrar as mensagens (ex.: Adri): ")
+
+# Processa as mensagens com os dados fornecidos
+resultado = processar_mensagens(arquivo_txt, filtro_de_busca)
+print(resultado)
